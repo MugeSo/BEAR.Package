@@ -10,7 +10,9 @@ use BEAR\Sunday\Inject\AppDirInject;
 use BEAR\Sunday\Inject\TmpDirInject;
 use Ray\Di\ProviderInterface as Provide;
 use Twig_Environment;
-use Twig_Loader_String;
+use Twig_Loader_Filesystem;
+use Ray\Di\Di\Inject;
+use Ray\Di\Di\Named;
 
 /**
  * Twig
@@ -20,7 +22,20 @@ use Twig_Loader_String;
 class TwigProvider implements Provide
 {
     use TmpDirInject;
-    use AppDirInject;
+
+    /**
+     * @var string
+     */
+    private $libDir;
+
+    /**
+     * @Inject
+     * @Named("vendor_dir")
+     */
+    public function setVendor($libDir)
+    {
+        $this->libDir = $libDir;
+    }
 
     /**
      * Return instance
@@ -29,7 +44,10 @@ class TwigProvider implements Provide
      */
     public function get()
     {
-        $twig = new Twig_Environment(new Twig_Loader_String);
+        $loader = new Twig_Loader_Filesystem($this->libDir . '/twig/templates');
+        $twig = new Twig_Environment($loader, array(
+            'cache' => $this->tmpDir . '/twig',
+        ));
         return $twig;
     }
 }
